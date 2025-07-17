@@ -1,9 +1,24 @@
 import { FaLinkedinIn, FaInstagram, FaGithub } from "react-icons/fa";
 import { Social } from "../../components/Social";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../services/firebaseConnection";
+import { useEffect, useState } from "react";
+import { Header } from "../../components/Header";
 
 export function Home() {
+    const [signed, setSigned] = useState<boolean>(false);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) setSigned(true);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
     return (
         <div className="flex flex-col w-full py-4 items-center justify-center">
+            {signed && <Header />}
             <h1 className="md:text-4xl text-3xl font-bold text-white mt-20">
                 JenaCarry
             </h1>

@@ -13,7 +13,7 @@ export function Private({ children }: PrivateProps): JSX.Element | ReactNode {
     const [signed, setSigned] = useState<boolean>(false);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 const userData = {
                     uid: user?.uid,
@@ -31,9 +31,7 @@ export function Private({ children }: PrivateProps): JSX.Element | ReactNode {
             }
         });
 
-        return () => {
-            unsub();
-        };
+        return () => unsubscribe();
     }, []);
 
     if (loading) return null;

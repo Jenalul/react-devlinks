@@ -1,11 +1,19 @@
 import { BiLogOut } from "react-icons/bi";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { auth } from "../../services/firebaseConnection";
 import { signOut } from "firebase/auth";
 
 export function Header() {
+    const navigate = useNavigate();
+
     async function handleLogout() {
-        await signOut(auth);
+        await signOut(auth)
+            .then(() => {
+                navigate("/login");
+            })
+            .catch((error) => {
+                console.error("Erro ao fazer logout:", error);
+            });
     }
 
     return (

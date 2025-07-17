@@ -9,6 +9,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 export function Login() {
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(false);
 
     const navigate = useNavigate();
 
@@ -20,6 +21,8 @@ export function Login() {
             return;
         }
 
+        setLoading(true);
+
         signInWithEmailAndPassword(auth, email, password)
             .then(() => {
                 console.log("Logado com sucesso!");
@@ -27,13 +30,14 @@ export function Login() {
             })
             .catch((error) =>
                 console.error("Erro ao fazer o login: ", error.code)
-            );
+            )
+            .finally(() => setLoading(false));
     }
 
     return (
         <div className="flex flex-col w-full h-screen items-center justify-center">
             <Link to="/">
-                <h1 className="mt11 text-white mb-7 font-bold text-5xl">
+                <h1 className="mt-11 text-white mb-7 font-bold text-5xl">
                     Dev
                     <span className="bg-gradient-to-r from-yellow-500 to-orange-400 bg-clip-text text-transparent">
                         Link
@@ -63,7 +67,7 @@ export function Login() {
                     type="submit"
                     className="h-9 bg-blue-600 rounded border-0 text-lg font-medium text-white cursor-pointer transition-colors hover:bg-blue-500"
                 >
-                    Acessar
+                    {loading ? "Carregando..." : "Acessar"}
                 </button>
             </form>
         </div>
