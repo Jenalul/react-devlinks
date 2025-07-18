@@ -3,7 +3,14 @@ import { auth, db } from "../../services/firebaseConnection";
 import { createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
 import { Link, useNavigate } from "react-router";
 import { Input } from "../../components/Input";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+    addDoc,
+    collection,
+    doc,
+    getDoc,
+    serverTimestamp,
+    setDoc,
+} from "firebase/firestore";
 
 export function Signup() {
     const [username, setUserName] = useState<string>("");
@@ -52,10 +59,10 @@ export function Signup() {
             );
             const user = userCredential.user;
 
-            await setDoc(doc(db, "users", user.uid), {
+            await addDoc(collection(db, "users", user.uid, "userInfo"), {
                 username: username,
                 email: email,
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
             });
 
             await setDoc(doc(db, "usernames", username), {
@@ -94,11 +101,12 @@ export function Signup() {
                     value={username}
                     onChange={(e) => setUserName(e.target.value)}
                     placeholder="Digite um nome de usuário..."
+                    autoComplete="username"
                 />
                 <Input
                     type="email"
                     value={email}
-                    autoComplete="username"
+                    autoComplete="email"
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Digite o seu email..."
                 />

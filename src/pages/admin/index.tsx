@@ -2,16 +2,16 @@ import { useState, type FormEvent } from "react";
 import { Header } from "../../components/Header";
 import { Input } from "../../components/Input";
 import { FiTrash } from "react-icons/fi";
-// import { auth, db } from "../../services/firebaseConnection";
-// import {
-//     addDoc,
-//     collection,
-//     onSnapshot,
-//     query,
-//     orderBy,
-//     doc,
-//     deleteDoc,
-// } from "firebase/firestore";
+import { auth, db } from "../../services/firebaseConnection";
+import {
+    addDoc,
+    collection,
+    // onSnapshot,
+    // query,
+    // orderBy,
+    // doc,
+    // deleteDoc,
+} from "firebase/firestore";
 
 export function Admin() {
     const [nameInput, setNameInput] = useState<string>("");
@@ -28,28 +28,29 @@ export function Admin() {
             return;
         }
 
-        // const user = auth.currentUser;
+        const user = auth.currentUser;
 
-        // if (!user) {
-        //     alert("Usuário não autenticado.");
-        //     return;
-        // }
+        if (!user) {
+            alert("Usuário não autenticado.");
+            return;
+        }
 
-        // const uid = user.uid;
+        const uid = user.uid;
 
-        // try {
-        //     await addDoc(collection(db, "users", uid, "links"), {
-        //         name: nameInput,
-        //         url: urlInput,
-        //         bg: backgroundColorInput,
-        //         color: textColorInput,
-        //         created: new Date(),
-        //     });
-        //     setNameInput("");
-        //     setUrlInput("");
-        // } catch (error) {
-        //     console.error("Erro ao salvar o link: ", error);
-        // }
+        try {
+            await addDoc(collection(db, "users", uid, "links"), {
+                name: nameInput,
+                url: urlInput,
+                bg: backgroundColorInput,
+                color: textColorInput,
+                created: new Date(),
+            });
+            setNameInput("");
+            setUrlInput("");
+            alert("Link cadastrado com sucesso!");
+        } catch (error) {
+            console.error("Erro ao salvar o link: ", error);
+        }
     }
 
     return (
