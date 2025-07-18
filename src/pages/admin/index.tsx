@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Header } from "../../components/Header";
 import { Input } from "../../components/Input";
 import { FiTrash } from "react-icons/fi";
@@ -6,12 +6,20 @@ import { auth, db } from "../../services/firebaseConnection";
 import {
     addDoc,
     collection,
-    // onSnapshot,
-    // query,
-    // orderBy,
+    onSnapshot,
+    orderBy,
+    query,
     // doc,
     // deleteDoc,
 } from "firebase/firestore";
+
+interface LinkProps {
+    id: string;
+    name: string;
+    url: string;
+    bg: string;
+    color: string;
+}
 
 export function Admin() {
     const [nameInput, setNameInput] = useState<string>("");
@@ -19,6 +27,38 @@ export function Admin() {
     const [textColorInput, setTextColorInput] = useState<string>("#121212");
     const [backgroundColorInput, setBackgroundColorInput] =
         useState<string>("#f1f1f1");
+    const [userId, setUserId] = useState<string>("");
+    const [links, setLinks] = useState<LinkProps[]>([]);
+
+    useEffect(() => {
+        const user = auth.currentUser;
+
+        if (!user) {
+            alert("Usuário não autenticado.");
+            return;
+        }
+
+        const uid = user.uid;
+        setUserId(user.uid);
+
+        const linksRef = collection(db, "users", uid, "links");
+        const queryRef = query(linksRef, orderBy("created", "asc"));
+        const unsubscribe = onSnapshot(queryRef, (snapshot) => {
+            const list = [] as LinkProps[];
+            snapshot.forEach((doc) => {
+                list.push({
+                    id: doc.id,
+                    name: doc.data().name,
+                    url: doc.data().url,
+                    bg: doc.data().bg,
+                    color: doc.data().color,
+                });
+            });
+            setLinks(list);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
@@ -28,17 +68,8 @@ export function Admin() {
             return;
         }
 
-        const user = auth.currentUser;
-
-        if (!user) {
-            alert("Usuário não autenticado.");
-            return;
-        }
-
-        const uid = user.uid;
-
         try {
-            await addDoc(collection(db, "users", uid, "links"), {
+            await addDoc(collection(db, "users", userId, "links"), {
                 name: nameInput,
                 url: urlInput,
                 bg: backgroundColorInput,
@@ -153,15 +184,22 @@ export function Admin() {
 
             <h2 className="font-bold text-white mb-4 text-2xl">Meus Links</h2>
 
-            <article
-                className="flex items-center justify-between w-11/12 max-w-xl rounded p-3 mb-2 select-none"
-                style={{ backgroundColor: "#2563eb", color: "#fff" }}
-            >
-                <p>Canal do YouTube</p>
-                <button className="border border-dashed p-1.5 rounded cursor-pointer bg-neutral-900">
-                    <FiTrash size={18} color="#fff" />
-                </button>
-            </article>
+            {links.length > 0 &&
+                links.map((link) => (
+                    <article
+                        key={link.id}
+                        className="flex items-center justify-between w-11/12 max-w-xl rounded p-3 mb-2 select-none"
+                        style={{
+                            backgroundColor: `${link.bg}`,
+                            color: `${link.color}`,
+                        }}
+                    >
+                        <p>{link.name}</p>
+                        <button className="border border-dashed p-1.5 rounded cursor-pointer bg-neutral-900">
+                            <FiTrash size={18} color="#fff" />
+                        </button>
+                    </article>
+                ))}
         </div>
     );
 }
