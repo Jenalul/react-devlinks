@@ -6,6 +6,7 @@ import { Signup } from "./pages/signup";
 import { NetWorks } from "./pages/networks";
 
 import { Private } from "./routes/Private";
+import { User } from "./pages/user-page";
 
 const router = createBrowserRouter([
     {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
                 <NetWorks />
             </Private>
         ),
+    },
+    {
+        path: "/:username",
+        element: <User />,
     },
 ]);
 

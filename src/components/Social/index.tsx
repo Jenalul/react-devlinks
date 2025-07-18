@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 interface SocialProps {
-    url: string;
+    url?: string;
     children: ReactNode;
 }
 

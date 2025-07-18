@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { Button } from "../../components/Button";
 
-interface LinkProps {
+export interface LinkProps {
     id: string;
     name: string;
     url: string;
