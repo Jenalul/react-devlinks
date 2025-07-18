@@ -6,11 +6,11 @@ import { auth, db } from "../../services/firebaseConnection";
 import {
     addDoc,
     collection,
+    doc,
     onSnapshot,
     orderBy,
     query,
-    // doc,
-    // deleteDoc,
+    deleteDoc,
 } from "firebase/firestore";
 
 interface LinkProps {
@@ -81,6 +81,16 @@ export function Admin() {
             alert("Link cadastrado com sucesso!");
         } catch (error) {
             console.error("Erro ao salvar o link: ", error);
+        }
+    }
+
+    async function handleDelete(id: string) {
+        const docRef = doc(db, "users", userId, "links", id);
+        try {
+            await deleteDoc(docRef);
+            alert("Link deletado com sucesso!");
+        } catch (error) {
+            console.error("Erro ao deletar o link: ", error);
         }
     }
 
@@ -182,7 +192,13 @@ export function Admin() {
                 </button>
             </form>
 
-            <h2 className="font-bold text-white mb-4 text-2xl">Meus Links</h2>
+            <h2
+                className={`font-bold mb-4 text-2xl ${
+                    links.length === 0 ? "text-neutral-400" : "text-white"
+                }`}
+            >
+                {links.length > 0 ? "Meus Links" : "Adicione algum link..."}
+            </h2>
 
             {links.length > 0 &&
                 links.map((link) => (
@@ -190,12 +206,15 @@ export function Admin() {
                         key={link.id}
                         className="flex items-center justify-between w-11/12 max-w-xl rounded p-3 mb-2 select-none"
                         style={{
-                            backgroundColor: `${link.bg}`,
-                            color: `${link.color}`,
+                            backgroundColor: link.bg,
+                            color: link.color,
                         }}
                     >
-                        <p>{link.name}</p>
-                        <button className="border border-dashed p-1.5 rounded cursor-pointer bg-neutral-900">
+                        <p className="font-medium">{link.name}</p>
+                        <button
+                            onClick={() => handleDelete(link.id)}
+                            className="border border-dashed p-1.5 rounded cursor-pointer bg-neutral-900"
+                        >
                             <FiTrash size={18} color="#fff" />
                         </button>
                     </article>
