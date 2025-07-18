@@ -12,6 +12,7 @@ import {
     query,
     deleteDoc,
 } from "firebase/firestore";
+import { Button } from "../../components/Button";
 
 interface LinkProps {
     id: string;
@@ -184,12 +185,7 @@ export function Admin() {
                     </div>
                 )}
 
-                <button
-                    type="submit"
-                    className="bg-blue-600 h-9 rounded-md text-white font-medium cursor-pointer transition-colors hover:bg-blue-500 mb-7"
-                >
-                    Cadastrar
-                </button>
+                <Button type="submit" text="Cadastrar" />
             </form>
 
             <h2
