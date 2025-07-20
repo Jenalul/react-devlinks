@@ -7,6 +7,7 @@ import { NetWorks } from "./pages/networks";
 
 import { Private } from "./routes/Private";
 import { User } from "./pages/user-page";
+import { NotFound } from "./pages/not-found";
 
 const router = createBrowserRouter([
     {
@@ -40,6 +41,14 @@ const router = createBrowserRouter([
     {
         path: "/:username",
         element: <User />,
+    },
+    {
+        path: "*",
+        element: <NotFound />,
+    },
+    {
+        path: "/notfound",
+        element: <NotFound />,
     },
 ]);
 

@@ -4,23 +4,41 @@ import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../services/firebaseConnection";
+import type { UserInfoProps } from "../admin";
+import { useNavigate } from "react-router";
+
+interface NewLinksProps {
+    linkedIn?: string;
+    instagram?: string;
+    github?: string;
+}
 
 export function NetWorks() {
     const [linkedIn, setLinkedIn] = useState<string>("");
     const [instagram, setInstagram] = useState<string>("");
     const [github, setGithub] = useState<string>("");
-    const [userId, setUserId] = useState<string>("");
+    const [userInfo, setUserInfo] = useState<UserInfoProps>();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const user = auth.currentUser;
 
         if (!user) {
             alert("Usuário não autenticado.");
+            navigate("/login");
             return;
         }
 
         const uid = user.uid;
-        setUserId(uid);
+
+        const userInfoRef = doc(db, "users", uid, "userInfo", "main");
+        getDoc(userInfoRef)
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    setUserInfo({ id: uid, name: snapshot.data()?.username });
+                }
+            })
+            .catch((error) => console.error(error));
 
         async function loadingSocial() {
             const docRef = doc(db, "users", uid, "mainLinks", "social");
@@ -37,22 +55,38 @@ export function NetWorks() {
         }
 
         loadingSocial();
-    }, []);
+    }, [navigate]);
 
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
+
+        if (!userInfo?.id || !userInfo.name) {
+            alert("Usuário não autenticado.");
+            return;
+        }
 
         if (!linkedIn && !instagram && !github) {
             alert("Preencha pelo menos um link.");
             return;
         }
 
+        const newLinks: NewLinksProps = {
+            linkedIn: linkedIn,
+            instagram: instagram,
+            github: github,
+        };
+
         try {
-            await setDoc(doc(db, "users", userId, "mainLinks", "social"), {
-                linkedIn: linkedIn,
-                instagram: instagram,
-                github: github,
-            });
+            await setDoc(
+                doc(db, "users", userInfo.id, "mainLinks", "social"),
+                newLinks
+            );
+
+            await setDoc(
+                doc(db, "usernames", userInfo.name, "mainLinks", "social"),
+                newLinks
+            );
+
             alert("Links cadastrados com sucesso!");
         } catch (error) {
             console.error("Erro ao salvar links.", error);

@@ -1,51 +1,59 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { auth, db } from "../../services/firebaseConnection";
-import { createUserWithEmailAndPassword, type AuthError } from "firebase/auth";
-import { Link, useNavigate } from "react-router";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useNavigate } from "react-router";
 import { Input } from "../../components/Input";
-import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    serverTimestamp,
-    setDoc,
-} from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { Logo } from "../../components/Logo";
 
 export function Signup() {
     const [username, setUserName] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [userNameAvailable, setUsarNameAvailable] = useState<null | boolean>(
+    const [userNameAvailable, setUserNameAvailable] = useState<null | boolean>(
         null
     );
     const [loading, setLoading] = useState<boolean>(false);
     const navigate = useNavigate();
 
+    // Verifica se o nome já existe
     useEffect(() => {
         if (username.trim().length < 3) {
-            setUsarNameAvailable(null);
+            setUserNameAvailable(null);
             return;
         }
 
         const checkUserName = setTimeout(async () => {
             const docRef = doc(db, "usernames", username);
             const docSnap = await getDoc(docRef);
-            setUsarNameAvailable(!docSnap.exists());
+            setUserNameAvailable(!docSnap.exists());
         }, 500);
 
         return () => clearTimeout(checkUserName);
     }, [username]);
 
+    // Cria a conta
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
         if (username.trim().length < 3) {
-            alert("Username inválido...");
+            alert("Username deve ter no mínimo 3 caracteres.");
+            return;
+        }
+
+        if (/\s/.test(username)) {
+            alert("O nome de usuário não pode conter espaços.");
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            alert(
+                "O nome de usuário só pode conter letras, números e underlines (_)."
+            );
             return;
         }
 
         if (!userNameAvailable) {
-            alert("Nome de usuário já está em uso.");
+            alert("Username já existe.");
             return;
         }
 
@@ -59,38 +67,26 @@ export function Signup() {
             );
             const user = userCredential.user;
 
-            await addDoc(collection(db, "users", user.uid, "userInfo"), {
+            await setDoc(doc(db, "users", user.uid, "userInfo", "main"), {
                 username: username,
                 email: email,
                 createdAt: serverTimestamp(),
             });
 
-            await setDoc(doc(db, "usernames", username), {
-                uid: user.uid,
-            });
+            await setDoc(doc(db, "usernames", username), {});
             alert("Conta criada com sucesso!");
             navigate("/admin", { replace: true });
-        } catch (error: unknown) {
-            const firebaseError = error as AuthError;
-            if (firebaseError.code === "auth/email-already-in-use") {
-                alert("Email já existe.");
-            } else {
-                alert("Erro ao criar a conta.");
-            }
+        } catch (error) {
+            console.error("Erro ao criar a conta.", error);
+            alert("Erro ao criar a conta.");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     return (
         <div className="flex flex-col w-full h-screen items-center justify-center">
-            <Link to="/">
-                <h1 className="mt-11 text-white mb-7 font-bold text-5xl">
-                    Dev
-                    <span className="bg-gradient-to-r from-yellow-500 to-orange-400 bg-clip-text text-transparent">
-                        Link
-                    </span>
-                </h1>
-            </Link>
+            <Logo />
 
             <form
                 onSubmit={handleRegister}

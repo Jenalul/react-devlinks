@@ -11,8 +11,17 @@ import {
     orderBy,
     query,
     deleteDoc,
+    getDoc,
 } from "firebase/firestore";
 import { Button } from "../../components/Button";
+
+interface CreateLinkProps {
+    name: string;
+    url: string;
+    bg: string;
+    color: string;
+    created: Date;
+}
 
 export interface LinkProps {
     id: string;
@@ -22,25 +31,35 @@ export interface LinkProps {
     color: string;
 }
 
+export interface UserInfoProps {
+    id: string;
+    name: string;
+}
+
 export function Admin() {
     const [nameInput, setNameInput] = useState<string>("");
     const [urlInput, setUrlInput] = useState<string>("");
     const [textColorInput, setTextColorInput] = useState<string>("#121212");
     const [backgroundColorInput, setBackgroundColorInput] =
         useState<string>("#f1f1f1");
-    const [userId, setUserId] = useState<string>("");
     const [links, setLinks] = useState<LinkProps[]>([]);
+    const [userInfo, setUserInfo] = useState<UserInfoProps>();
 
     useEffect(() => {
         const user = auth.currentUser;
 
-        if (!user) {
-            alert("Usuário não autenticado.");
-            return;
-        }
+        if (!user) return;
 
         const uid = user.uid;
-        setUserId(user.uid);
+
+        const userInfoRef = doc(db, "users", uid, "userInfo", "main");
+        getDoc(userInfoRef)
+            .then((snapshot) => {
+                if (snapshot.exists()) {
+                    setUserInfo({ id: uid, name: snapshot.data()?.username });
+                }
+            })
+            .catch((error) => console.error(error));
 
         const linksRef = collection(db, "users", uid, "links");
         const queryRef = query(linksRef, orderBy("created", "asc"));
@@ -64,29 +83,66 @@ export function Admin() {
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
 
+        if (!userInfo?.id || !userInfo.name) {
+            alert("Usuário não autenticado.");
+            return;
+        }
+
         if (nameInput.trim() === "" || urlInput.trim() === "") {
             alert("Preencha todos os campos!");
             return;
         }
 
+        const newLink: CreateLinkProps = {
+            name: nameInput,
+            url: urlInput,
+            bg: backgroundColorInput,
+            color: textColorInput,
+            created: new Date(),
+        };
+
+        let userDocId: string | null = null;
+
         try {
-            await addDoc(collection(db, "users", userId, "links"), {
-                name: nameInput,
-                url: urlInput,
-                bg: backgroundColorInput,
-                color: textColorInput,
-                created: new Date(),
-            });
+            // Cria os links no perfil privado
+            const userDocRef = await addDoc(
+                collection(db, "users", userInfo?.id, "links"),
+                newLink
+            );
+            userDocId = userDocRef.id;
+
+            // Cria os links no perfil público
+            await addDoc(
+                collection(db, "usernames", userInfo.name, "links"),
+                newLink
+            );
+
             setNameInput("");
             setUrlInput("");
             alert("Link cadastrado com sucesso!");
         } catch (error) {
             console.error("Erro ao salvar o link: ", error);
+            // Se falhar o cadastro, ele deleta do privado
+            if (userDocId) {
+                try {
+                    await deleteDoc(
+                        doc(db, "users", userInfo.id, "links", userDocId)
+                    );
+                    console.warn("Rollback: link privado removido.");
+                } catch (rollbackError) {
+                    console.error("Erro ao fazer rollback:", rollbackError);
+                }
+            }
         }
     }
 
     async function handleDelete(id: string) {
-        const docRef = doc(db, "users", userId, "links", id);
+        if (!userInfo?.id || !userInfo.name) {
+            alert("Usuário não autenticado.");
+            return;
+        }
+
+        const docRef = doc(db, "users", userInfo?.id, "links", id);
         try {
             await deleteDoc(docRef);
             alert("Link deletado com sucesso!");

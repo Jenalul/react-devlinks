@@ -12,17 +12,10 @@ export function Private({ children }: PrivateProps): JSX.Element | ReactNode {
     const [loading, setLoading] = useState<boolean>(true);
     const [signed, setSigned] = useState<boolean>(false);
 
+    // Verifica se o usuário está autenticado
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                const userData = {
-                    uid: user?.uid,
-                    email: user?.email,
-                };
-                localStorage.setItem(
-                    "@react-devlinks",
-                    JSON.stringify(userData)
-                );
                 setLoading(false);
                 setSigned(true);
             } else {
