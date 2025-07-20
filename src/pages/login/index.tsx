@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router";
 import { Input } from "../../components/Input";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 // FireBase
 import { auth } from "../../services/firebaseConnection";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { Logo } from "../../components/Logo";
 
 export function Login() {
@@ -13,6 +13,17 @@ export function Login() {
     const [loading, setLoading] = useState<boolean>(false);
 
     const navigate = useNavigate();
+
+    // Se estiver logado redireciona
+    useEffect(() => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                navigate("/admin");
+            }
+        });
+
+        return () => unsubscribeAuth();
+    }, [navigate]);
 
     // Faz o login do usuário
     function handleSubmit(e: FormEvent) {

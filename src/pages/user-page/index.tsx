@@ -15,6 +15,7 @@ import {
 import type { LinkProps } from "../admin";
 import { useNavigate, useParams } from "react-router";
 import { Loading } from "../../components/Loading";
+import { HomeHeader } from "../../components/HomeHeader";
 
 interface SocialLinksProps {
     linkedIn?: string;
@@ -92,7 +93,7 @@ export function User() {
             }
         }
 
-        const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             setSigned(!!user);
         });
 
@@ -114,12 +115,15 @@ export function User() {
         return () => unsubscribeAuth();
     }, [username, navigate]);
 
+    console.log(signed);
+
     return (
         <>
             {loading ? (
                 <Loading />
             ) : (
                 <div className="flex flex-col w-full py-4 items-center justify-center">
+                    {!signed && <HomeHeader />}
                     {signed && <Header />}
                     <h1 className="md:text-4xl text-3xl font-bold text-white mt-20">
                         @{username}

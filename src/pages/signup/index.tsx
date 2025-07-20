@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { auth, db } from "../../services/firebaseConnection";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+} from "firebase/auth";
 import { useNavigate } from "react-router";
 import { Input } from "../../components/Input";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -14,7 +17,19 @@ export function Signup() {
         null
     );
     const [loading, setLoading] = useState<boolean>(false);
+
     const navigate = useNavigate();
+
+    // Se estiver logado redireciona
+    useEffect(() => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                navigate("/admin");
+            }
+        });
+
+        return () => unsubscribeAuth();
+    }, [navigate]);
 
     // Verifica se o nome já existe
     useEffect(() => {
