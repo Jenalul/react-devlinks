@@ -115,8 +115,6 @@ export function User() {
         return () => unsubscribeAuth();
     }, [username, navigate]);
 
-    console.log(signed);
-
     return (
         <>
             {loading ? (
