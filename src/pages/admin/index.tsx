@@ -12,6 +12,7 @@ import {
     query,
     deleteDoc,
     getDoc,
+    setDoc,
 } from "firebase/firestore";
 import { Button } from "../../components/Button";
 import { toast } from "react-toastify";
@@ -110,8 +111,8 @@ export function Admin() {
             userDocId = userDocRef.id;
 
             // Cria os links no perfil público
-            await addDoc(
-                collection(db, "usernames", userInfo.name, "links"),
+            await setDoc(
+                doc(db, "usernames", userInfo.name, "links", userDocId),
                 newLink
             );
 
@@ -138,9 +139,11 @@ export function Admin() {
     async function handleDelete(id: string) {
         if (!userInfo?.id || !userInfo.name) return;
 
-        const docRef = doc(db, "users", userInfo?.id, "links", id);
+        const privateLinks = doc(db, "users", userInfo?.id, "links", id);
+        const publicLinks = doc(db, "usernames", userInfo?.name, "links", id);
         try {
-            await deleteDoc(docRef);
+            await deleteDoc(privateLinks);
+            await deleteDoc(publicLinks);
             toast.success("Link deletado com sucesso!");
         } catch (error) {
             console.error("Erro ao deletar o link: ", error);
