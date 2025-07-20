@@ -8,6 +8,8 @@ import { useNavigate } from "react-router";
 import { Input } from "../../components/Input";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { Logo } from "../../components/Logo";
+import { HomeHeader } from "../../components/HomeHeader";
+import { toast } from "react-toastify";
 
 export function Signup() {
     const [username, setUserName] = useState<string>("");
@@ -51,24 +53,24 @@ export function Signup() {
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
         if (username.trim().length < 3) {
-            alert("Username deve ter no mínimo 3 caracteres.");
+            toast.warning("Username deve ter no mínimo 3 caracteres.");
             return;
         }
 
         if (/\s/.test(username)) {
-            alert("O nome de usuário não pode conter espaços.");
+            toast.warning("O nome de usuário não pode conter espaços.");
             return;
         }
 
         if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-            alert(
-                "O nome de usuário só pode conter letras, números e underlines (_)."
+            toast.warn(
+                "O nome de usuário só pode conter letras, números e underlines."
             );
             return;
         }
 
         if (!userNameAvailable) {
-            alert("Username já existe.");
+            toast.warning("Username já existe.");
             return;
         }
 
@@ -89,52 +91,54 @@ export function Signup() {
             });
 
             await setDoc(doc(db, "usernames", username), {});
-            alert("Conta criada com sucesso!");
+            toast.success("Conta criada com sucesso!");
             navigate("/admin", { replace: true });
         } catch (error) {
             console.error("Erro ao criar a conta.", error);
-            alert("Erro ao criar a conta.");
+            toast.error("Erro ao criar a conta.");
         } finally {
             setLoading(false);
         }
     }
 
     return (
-        <div className="flex flex-col w-full h-screen items-center justify-center">
-            <Logo />
-
-            <form
-                onSubmit={handleRegister}
-                className="w-full max-w-xl flex flex-col px-2"
-            >
-                <Input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Digite um nome de usuário..."
-                    autoComplete="username"
-                />
-                <Input
-                    type="email"
-                    value={email}
-                    autoComplete="email"
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Digite o seu email..."
-                />
-                <Input
-                    type="password"
-                    value={password}
-                    autoComplete="current-password"
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Digite a sua senha..."
-                />
-                <button
-                    type="submit"
-                    className="h-9 bg-blue-600 rounded border-0 text-lg font-medium text-white cursor-pointer transition-colors hover:bg-blue-500"
+        <>
+            <HomeHeader />
+            <div className="flex flex-col w-full h-screen items-center justify-center">
+                <Logo />
+                <form
+                    onSubmit={handleRegister}
+                    className="w-full max-w-xl flex flex-col px-2"
                 >
-                    {loading ? "Criando conta..." : "Cadastrar"}
-                </button>
-            </form>
-        </div>
+                    <Input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUserName(e.target.value)}
+                        placeholder="Digite um nome de usuário..."
+                        autoComplete="username"
+                    />
+                    <Input
+                        type="email"
+                        value={email}
+                        autoComplete="email"
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Digite o seu email..."
+                    />
+                    <Input
+                        type="password"
+                        value={password}
+                        autoComplete="current-password"
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Digite a sua senha..."
+                    />
+                    <button
+                        type="submit"
+                        className="h-9 bg-blue-600 rounded border-0 text-lg font-medium text-white cursor-pointer transition-colors hover:bg-blue-500"
+                    >
+                        {loading ? "Criando conta..." : "Cadastrar"}
+                    </button>
+                </form>
+            </div>
+        </>
     );
 }

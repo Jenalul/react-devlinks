@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../services/firebaseConnection";
 import type { UserInfoProps } from "../admin";
 import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 interface NewLinksProps {
     linkedIn?: string;
@@ -24,7 +25,6 @@ export function NetWorks() {
         const user = auth.currentUser;
 
         if (!user) {
-            alert("Usuário não autenticado.");
             navigate("/login");
             return;
         }
@@ -60,13 +60,10 @@ export function NetWorks() {
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
 
-        if (!userInfo?.id || !userInfo.name) {
-            alert("Usuário não autenticado.");
-            return;
-        }
+        if (!userInfo?.id || !userInfo.name) return;
 
         if (!linkedIn && !instagram && !github) {
-            alert("Preencha pelo menos um link.");
+            toast.warning("Preencha pelo menos um link.");
             return;
         }
 
@@ -87,9 +84,10 @@ export function NetWorks() {
                 newLinks
             );
 
-            alert("Links cadastrados com sucesso!");
+            toast.success("Links cadastrados com sucesso!");
         } catch (error) {
             console.error("Erro ao salvar links.", error);
+            toast.error("Erro ao salvar links.");
         }
     }
 

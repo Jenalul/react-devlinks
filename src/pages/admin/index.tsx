@@ -14,6 +14,7 @@ import {
     getDoc,
 } from "firebase/firestore";
 import { Button } from "../../components/Button";
+import { toast } from "react-toastify";
 
 interface CreateLinkProps {
     name: string;
@@ -83,13 +84,10 @@ export function Admin() {
     async function handleRegister(e: FormEvent) {
         e.preventDefault();
 
-        if (!userInfo?.id || !userInfo.name) {
-            alert("Usuário não autenticado.");
-            return;
-        }
+        if (!userInfo?.id || !userInfo.name) return;
 
         if (nameInput.trim() === "" || urlInput.trim() === "") {
-            alert("Preencha todos os campos!");
+            toast.warning("Preencha todos os campos!");
             return;
         }
 
@@ -119,16 +117,17 @@ export function Admin() {
 
             setNameInput("");
             setUrlInput("");
-            alert("Link cadastrado com sucesso!");
+            toast.success("Link cadastrado com sucesso!");
         } catch (error) {
             console.error("Erro ao salvar o link: ", error);
+            toast.error("Erro ao salvar o link.");
             // Se falhar o cadastro, ele deleta do privado
             if (userDocId) {
                 try {
                     await deleteDoc(
                         doc(db, "users", userInfo.id, "links", userDocId)
                     );
-                    console.warn("Rollback: link privado removido.");
+                    console.log("Rollback: link privado removido.");
                 } catch (rollbackError) {
                     console.error("Erro ao fazer rollback:", rollbackError);
                 }
@@ -137,17 +136,15 @@ export function Admin() {
     }
 
     async function handleDelete(id: string) {
-        if (!userInfo?.id || !userInfo.name) {
-            alert("Usuário não autenticado.");
-            return;
-        }
+        if (!userInfo?.id || !userInfo.name) return;
 
         const docRef = doc(db, "users", userInfo?.id, "links", id);
         try {
             await deleteDoc(docRef);
-            alert("Link deletado com sucesso!");
+            toast.success("Link deletado com sucesso!");
         } catch (error) {
             console.error("Erro ao deletar o link: ", error);
+            toast.error("Erro ao deletar o link.");
         }
     }
 
